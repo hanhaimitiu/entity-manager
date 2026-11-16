@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 950" font-family="'Segoe UI','Microsoft YaHei',sans-serif">
+  <style>
+    .panel{fill:#ffffff;stroke:#d8d2c7;stroke-width:1.5;}
+    .phead{fill:#ece7df;stroke:#d8d2c7;stroke-width:1.5;}
+    .ptitle{fill:#2d2a27;font-size:15px;font-weight:700;}
+    .box{fill:#ffffff;stroke:#3f6b78;stroke-width:1.5;rx:6;}
+    .bbox{fill:#e3ecee;stroke:#3f6b78;stroke-width:1.5;rx:6;}
+    .bmain{fill:#2d2a27;font-size:13px;font-weight:600;}
+    .bsub{fill:#5c5650;font-size:11px;}
+    .arrow{stroke:#3f6b78;stroke-width:1.8;fill:none;}
+    .anum{fill:#3f6b78;font-size:12px;font-weight:700;}
+    .acc{fill:#3f6b78;font-size:12.5px;font-weight:700;}
+    .note{fill:#a86a4c;font-size:11.5px;}
+    .nest{fill:#f4f1ea;stroke:#c9c2b6;stroke-width:1.2;rx:6;}
+    .nl{fill:#5c5650;font-size:11px;}
+    .nlh{fill:#2d2a27;font-size:11.5px;font-weight:700;}
+    .ttl{fill:#2d2a27;font-size:17px;font-weight:700;}
+    .role{fill:#5c5650;font-size:12px;}
+  </style>
+
+  <text x="380" y="30" text-anchor="middle" class="ttl">entity-manager</text>
+  <text x="380" y="50" text-anchor="middle" class="role">硬件描述翻译器 · JSON 配置→D-Bus 对象树</text>
+
+  <!-- Panel A 业务流程 -->
+  <rect class="panel" x="20" y="64" width="720" height="390" rx="6"/>
+  <rect class="phead" x="20" y="64" width="720" height="32" rx="6"/>
+  <text x="34" y="86" class="ptitle">一、业务流程：新主板上电，BMC 怎么知道有哪些传感器</text>
+
+  <rect class="box" x="50" y="102" width="660" height="40" rx="6"/>
+  <text x="66" y="120" class="bmain">① fru-device 扫 I2C/读 FRU，发布 xyz.openbmc_project.FruDevice 对象到 D-Bus</text>
+  <text x="66" y="136" class="bsub">src/fru_device/fru_device.cpp:1677-1678,898-910  ｜  README.md:47-50</text>
+
+  <line class="arrow" x1="380" y1="142" x2="380" y2="150"/>
+  <polygon points="372,148 388,148 380,154" fill="#3f6b78"/>
+
+  <rect class="box" x="50" y="154" width="660" height="40" rx="6"/>
+  <text x="66" y="172" class="bmain">② 启动加载配置：findFiles 扫 configurations/*.json → EMConfig</text>
+  <text x="66" y="188" class="bsub">src/entity_manager/main.cpp:14-28  ｜  configuration.cpp:20-28,79  ｜  em_config.cpp:190-219</text>
+
+  <line class="arrow" x1="380" y1="194" x2="380" y2="202"/>
+  <polygon points="372,200 388,200 380,206" fill="#3f6b78"/>
+
+  <rect class="box" x="50" y="206" width="660" height="40" rx="6"/>
+  <text x="66" y="224" class="bmain">③ schema 校验：valijson + schemas/global.json，必填 Name/Type/Probe/Exposes</text>
+  <text x="66" y="240" class="bsub">src/entity_manager/configuration.cpp:46-50,146-156  ｜  schemas/global.json:158</text>
+
+  <line class="arrow" x1="380" y1="246" x2="380" y2="254"/>
+  <polygon points="372,252 388,252 380,258" fill="#3f6b78"/>
+
+  <rect class="box" x="50" y="258" width="660" height="40" rx="6"/>
+  <text x="66" y="276" class="bmain">④ D-Bus 信号触发（InterfacesAdded 等）+ 500ms 防抖重扫</text>
+  <text x="66" y="292" class="bsub">src/entity_manager/entity_manager.cpp:730-775,619-631</text>
+
+  <line class="arrow" x1="380" y1="298" x2="380" y2="306"/>
+  <polygon points="372,304 388,304 380,310" fill="#3f6b78"/>
+
+  <rect class="box" x="50" y="310" width="660" height="40" rx="6"/>
+  <text x="66" y="328" class="bmain">⑤ PerformScan::run：GetSubTree+GetAll 取事实 → PerformProbe::doProbe 求值匹配</text>
+  <text x="66" y="344" class="bsub">src/entity_manager/perform_scan.cpp:752-763,198-200  ｜  perform_probe.cpp:69-161</text>
+
+  <line class="arrow" x1="380" y1="350" x2="380" y2="358"/>
+  <polygon points="372,356 388,356 380,362" fill="#3f6b78"/>
+
+  <rect class="box" x="50" y="362" width="660" height="40" rx="6"/>
+  <text x="66" y="380" class="bmain">⑥ 模板替换 $bus/$address/$BOARD_* → systemConfiguration（哈希 key）</text>
+  <text x="66" y="396" class="bsub">src/entity_manager/perform_scan.cpp:516-537,641-665</text>
+
+  <line class="arrow" x1="380" y1="402" x2="380" y2="410"/>
+  <polygon points="372,408 388,408 380,414" fill="#3f6b78"/>
+
+  <rect class="bbox" x="50" y="414" width="660" height="40" rx="6"/>
+  <text x="66" y="432" class="bmain">⑦ 发布对象树：postBoardToDBus → postExposesRecordsToDBus 生成 Configuration.* 接口</text>
+  <text x="66" y="448" class="bsub">src/entity_manager/entity_manager.cpp:530-557,147-284,375-378</text>
+
+  <!-- Panel B 代码体系结构 -->
+  <rect class="panel" x="20" y="466" width="720" height="250" rx="6"/>
+  <rect class="phead" x="20" y="466" width="720" height="32" rx="6"/>
+  <text x="34" y="488" class="ptitle">二、代码体系结构：配置驱动翻译 + 事件驱动热更新</text>
+
+  <text x="40" y="512" class="nlh">翻译流水线（配置驱动）：JSON 配置 → 硬件事实匹配 → 运行时配置 → D-Bus 对象树</text>
+  <text x="40" y="530" class="nl">· configurations/：375 个 .json；一物一文件，可单对象或数组（README.md:112-116；schemas/README.md:7-11）</text>
+  <text x="40" y="548" class="nl">· schemas/：global.json 定骨架，EMConfig 必填 Exposes/Name/Probe/Type（schemas/global.json:158）</text>
+  <text x="40" y="566" class="nl">· SchemaDBusTypes 读 schemas/ 建类型表，convertSchemaTypes 决定属性 D-Bus 类型（dbus_interface.cpp:263-303）</text>
+  <text x="40" y="584" class="nl">· 『finder』匹配：无 Finder 类，分两半——探测守护进程发事实 + PerformScan/PerformProbe 求值匹配（README.md:118-122）</text>
+  <text x="40" y="602" class="nl">· 对象组装：buildInventorySystemPath 生成板级路径（utils.cpp:430-439）；Configuration.Type（entity_manager.cpp:375-378）</text>
+  <text x="40" y="620" class="nl">· publishNewConfiguration：overlay 挂内核设备 → 写 system.json → postToDbus（entity_manager.cpp:530-557）</text>
+
+  <text x="40" y="644" class="nlh">热更新机制：配置启动加载 + 事件驱动更新（不是 inotify 监听 JSON 目录）</text>
+  <text x="40" y="662" class="nl">· loadConfigurations() 只在构造时调用（configuration.cpp:20-28）；改 JSON 要重启服务（Restart=always）</text>
+  <text x="40" y="680" class="nl">· 热插拔靠 InterfacesAdded 等 D-Bus 信号 → 500ms 防抖重扫（entity_manager.cpp:619-631,730-775）</text>
+  <text x="40" y="698" class="nl">· 真正的 inotify 在 fru-device，盯 /sys/bus/i2c/devices 而非 JSON 配置目录（fru_device.cpp:1619-1620）</text>
+
+  <!-- Panel C 对外交互 -->
+  <rect class="panel" x="20" y="728" width="720" height="206" rx="6"/>
+  <rect class="phead" x="20" y="728" width="720" height="32" rx="6"/>
+  <text x="34" y="750" class="ptitle">三、对外交互：入站（被谁调）/ 出站（调谁）</text>
+
+  <text x="40" y="776" class="acc">入站（被谁调）：</text>
+  <text x="40" y="794" class="nl">· 探测守护进程 D-Bus 信号（InterfacesAdded 等）（entity_manager.cpp:730-775）</text>
+  <text x="40" y="812" class="nl">· 外部 D-Bus Set 写回 JSON：六个白名单接口（FanProfile/Pid 等）（entity_manager.cpp:41-42）</text>
+  <text x="40" y="830" class="nl">  setter 更新内存 → setJsonFromPointer 写回 JSON → writeJsonFiles 落盘（dbus_interface.hpp:182-199）</text>
+
+  <text x="40" y="856" class="acc">出站（调谁）：</text>
+  <text x="40" y="874" class="nl">· 发布 Configuration.* 接口对象到 /xyz/openbmc_project/inventory/system/...（entity_manager.cpp:147-391,530-557）</text>
+  <text x="40" y="892" class="nl">· dbus-sensors 读 Configuration.TMP441，发布 Sensor.Value（docs/my_first_sensors.md:211-250）</text>
+  <text x="40" y="910" class="nl">· bmcweb / IPMI 呈现：inventory → Redfish REST API / IPMI SDR、FRU 命令（README.md:128-133）</text>
+</svg>
